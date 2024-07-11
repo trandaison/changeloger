@@ -28,7 +28,8 @@
   "scripts": {
     "dev": "node --experimental-specifier-resolution=node --loader ts-node/esm ./src/bin/changeloger.ts",
     "build": "rollup --config",
-    "test": "node dist/cli.mjs"
+    "test": "node dist/cli.mjs",
+    "release": "npm run build && npm run test && npm publish --access public"
   },
   "keywords": [
     "changeloger",
