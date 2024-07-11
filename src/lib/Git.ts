@@ -201,13 +201,15 @@ export class Git {
     });
   }
 
-  versionToCommitHash(version: string) {
-    const command = `git -C ${this.path} show ${version} --pretty=format:%h`;
-    return new Promise<string>((resolve, reject) => {
+  tag2Hash(version: string, fullHash = false) {
+    const command = `git -C ${this.path} rev-list -n 1 ${version}`;
+    return new Promise<string | null>((resolve, reject) => {
       exec(command, (error: any, stdout: any, stderr: any) => {
         if (error || stderr) return reject(error);
 
-        resolve(stdout.split('\n')[5]?.trim() || null);
+        if (!stdout) return resolve(null);
+
+        resolve(fullHash ? stdout : stdout.substring(0, 7));
       });
     });
   }

@@ -88,7 +88,7 @@ export class Changelog {
 
   async updateLatestCommit() {
     this.latestCommit = this.prevVersion
-      ? await this.git.versionToCommitHash(
+      ? await this.git.tag2Hash(
           this.prevVersion.toString(this.runtimeConfig.versionPrefix, null)
         )
       : null;
