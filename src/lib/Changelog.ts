@@ -6,7 +6,7 @@ import { Version } from './Version';
 import { PackageJson } from './PackageJson';
 import { fileExists, compareUrl } from './utils';
 import { ChangelogerRuntimeConfig } from '../types';
-import { versionHeader } from '../config';
+import { CommitType, defaultConfig, versionHeader } from '../config';
 // import { Release } from '../utils/Release';
 
 export class Changelog {
@@ -106,7 +106,8 @@ export class Changelog {
     const compareChangesLink = compareChangesUrl
       ? `[compare changes](${compareChangesUrl})`
       : '';
-    const commitEntries = await this.commitsToEntries(commits);
+    const sorted = Commit.sort(commits);
+    const commitEntries = await this.commitsToEntries(sorted);
 
     let newContent = [
       this.runtimeConfig.header,
@@ -134,9 +135,22 @@ export class Changelog {
     return content.split('\n').slice(1).join('\n');
   }
 
-  private commitsToEntries(commits: Commit[]) {
-    return Promise.all(
-      commits.map((commit) => commit.toChangelogEntry(this.git.repositoryUrl))
+  private async commitsToEntries(
+    commits: Commit[] | Record<CommitType, Commit[]>
+  ) {
+    if (Array.isArray(commits)) {
+      return Promise.all(
+        commits.map((commit) => commit.toChangelogEntry(this.git.repositoryUrl))
+      );
+    }
+
+    const entries = await Promise.all(
+      Object.entries(commits).map(async ([type, _commits]) => {
+        const commitLines = (await this.commitsToEntries(_commits)) as string[];
+        const header = `### ${defaultConfig.typeTitle[type as CommitType]}`;
+        return ['', header, '', ...commitLines];
+      })
     );
+    return entries.flat();
   }
 }

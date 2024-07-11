@@ -198,6 +198,18 @@ const configFileNames = [
     'changeloger.config.cjs',
 ];
 const versionHeader = '## ';
+var CommitType;
+(function (CommitType) {
+    CommitType["feat"] = "feat";
+    CommitType["perf"] = "perf";
+    CommitType["fix"] = "fix";
+    CommitType["refactor"] = "refactor";
+    CommitType["docs"] = "docs";
+    CommitType["chore"] = "chore";
+    CommitType["test"] = "test";
+    CommitType["style"] = "style";
+    CommitType["revert"] = "revert";
+})(CommitType || (CommitType = {}));
 const defaultConfig = {
     provider: null,
     header: '# Changelog',
@@ -206,6 +218,29 @@ const defaultConfig = {
     versionBumpType: 'patch',
     startVersion: '0.0.0',
     pullRequestOnly: false,
+    order: [
+        CommitType.feat,
+        CommitType.feat,
+        CommitType.perf,
+        CommitType.fix,
+        CommitType.refactor,
+        CommitType.docs,
+        CommitType.chore,
+        CommitType.test,
+        CommitType.style,
+        CommitType.revert,
+    ],
+    typeTitle: {
+        [CommitType.feat]: '🚀 Features',
+        [CommitType.perf]: '⚡️ Performance',
+        [CommitType.fix]: '🩹 Bug Fixes',
+        [CommitType.refactor]: '💅 Refactors',
+        [CommitType.docs]: '📖 Documentation',
+        [CommitType.chore]: '🏡 Chores',
+        [CommitType.test]: '✅ Tests',
+        [CommitType.style]: '✨ Styles',
+        [CommitType.revert]: '🔀 Reverts',
+    },
 };
 function getPullRequestRegex(provider) {
     switch (provider) {
@@ -328,6 +363,70 @@ function guessProvider(url) {
     if (url.includes('bitbucket'))
         return 'bitbucket';
     return null;
+}
+
+class Commit {
+    provider;
+    hash;
+    message;
+    body;
+    date;
+    branch;
+    authorName;
+    authorEmail;
+    refs;
+    parentHashes;
+    isPullRequest = false;
+    commits = null;
+    constructor(attrs, provider = null) {
+        this.provider = provider;
+        Object.assign(this, { ...attrs, date: new Date(attrs.date) });
+    }
+    get pullRequestNo() {
+        if (!this.isPullRequest)
+            return null;
+        if (this.provider === 'bitbucket') {
+            const { pullRequestNo } = this.message.match(/Merged in (?<branch>.+) \(pull request #(?<pullRequestNo>\d+)\)/)?.groups;
+            return Number(pullRequestNo);
+        }
+        return null;
+    }
+    get messageStats() {
+        return ((this.body || this.message).match(/^(?<type>[a-z]+)(\(?<scope>.+\))?:/)
+            ?.groups ?? null);
+    }
+    get type() {
+        return this.messageStats?.type ?? null;
+    }
+    toChangelogEntry(repositoryUrl) {
+        return this.isPullRequest
+            ? this.pullRequestEntry(repositoryUrl)
+            : this.commitEntry(repositoryUrl);
+    }
+    commitEntry(repositoryUrl) {
+        const commitLink = `[\`${this.hash}\`](${commitUrl(this.hash, this.provider, repositoryUrl)})`;
+        return `- ${this.message} (${commitLink})`;
+    }
+    pullRequestEntry(repositoryUrl) {
+        const prUrl = pullRequestUrl(this.pullRequestNo, this.provider, repositoryUrl);
+        const prLink = prUrl ? ` ([#${this.pullRequestNo}](${prUrl}))` : '';
+        const commitLinks = (this.commits ?? []).map((commitHash) => {
+            const commitId = commitHash.substring(0, 7);
+            return `[\`${commitId}\`](${commitUrl(commitId, this.provider, repositoryUrl)})`;
+        });
+        return `- ${this.isPullRequest ? this.body : this.message}${prLink} (${commitLinks.join(', ')})`;
+    }
+    static sort(commits) {
+        const { order } = defaultConfig;
+        return order.reduce((sorted, type) => {
+            const typeCommits = commits.filter((commit) => commit.type === type);
+            if (typeCommits.length) {
+                sorted[type] ??= [];
+                sorted[type].push(...typeCommits);
+            }
+            return sorted;
+        }, {});
+    }
 }
 
 class Version {
@@ -474,7 +573,8 @@ class Changelog {
         const compareChangesLink = compareChangesUrl
             ? `[compare changes](${compareChangesUrl})`
             : '';
-        const commitEntries = await this.commitsToEntries(commits);
+        const sorted = Commit.sort(commits);
+        const commitEntries = await this.commitsToEntries(sorted);
         let newContent = [
             this.runtimeConfig.header,
             this.nextVersion.toString(`${Changelog.versionHeader}${this.runtimeConfig.versionPrefix}`, this.runtimeConfig.date),
@@ -493,54 +593,16 @@ class Changelog {
     static removeHeader(content) {
         return content.split('\n').slice(1).join('\n');
     }
-    commitsToEntries(commits) {
-        return Promise.all(commits.map((commit) => commit.toChangelogEntry(this.git.repositoryUrl)));
-    }
-}
-
-class Commit {
-    provider;
-    hash;
-    message;
-    body;
-    date;
-    branch;
-    authorName;
-    authorEmail;
-    refs;
-    parentHashes;
-    isPullRequest = false;
-    commits = null;
-    constructor(attrs, provider = null) {
-        this.provider = provider;
-        Object.assign(this, { ...attrs, date: new Date(attrs.date) });
-    }
-    get pullRequestNo() {
-        if (!this.isPullRequest)
-            return null;
-        if (this.provider === 'bitbucket') {
-            const { pullRequestNo } = this.message.match(/Merged in (?<branch>.+) \(pull request #(?<pullRequestNo>\d+)\)/)?.groups;
-            return Number(pullRequestNo);
+    async commitsToEntries(commits) {
+        if (Array.isArray(commits)) {
+            return Promise.all(commits.map((commit) => commit.toChangelogEntry(this.git.repositoryUrl)));
         }
-        return null;
-    }
-    toChangelogEntry(repositoryUrl) {
-        return this.isPullRequest
-            ? this.pullRequestEntry(repositoryUrl)
-            : this.commitEntry(repositoryUrl);
-    }
-    commitEntry(repositoryUrl) {
-        const commitLink = `[\`${this.hash}\`](${commitUrl(this.hash, this.provider, repositoryUrl)})`;
-        return `- ${this.message} (${commitLink})`;
-    }
-    pullRequestEntry(repositoryUrl) {
-        const prUrl = pullRequestUrl(this.pullRequestNo, this.provider, repositoryUrl);
-        const prLink = prUrl ? ` ([#${this.pullRequestNo}](${prUrl}))` : '';
-        const commitLinks = (this.commits ?? []).map((commitHash) => {
-            const commitId = commitHash.substring(0, 7);
-            return `[\`${commitId}\`](${commitUrl(commitId, this.provider, repositoryUrl)})`;
-        });
-        return `- ${this.isPullRequest ? this.body : this.message}${prLink} (${commitLinks.join(', ')})`;
+        const entries = await Promise.all(Object.entries(commits).map(async ([type, _commits]) => {
+            const commitLines = (await this.commitsToEntries(_commits));
+            const header = `### ${defaultConfig.typeTitle[type]}`;
+            return ['', header, '', ...commitLines];
+        }));
+        return entries.flat();
     }
 }
 

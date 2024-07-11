@@ -1,3 +1,15 @@
+declare enum CommitType {
+  feat = 'feat',
+  perf = 'perf',
+  fix = 'fix',
+  refactor = 'refactor',
+  docs = 'docs',
+  chore = 'chore',
+  test = 'test',
+  style = 'style',
+  revert = 'revert',
+}
+
 type ChangelogerProvider = 'git' | 'github' | 'bitbucket' | 'gitlab';
 
 interface ChangelogerConfig {
@@ -8,6 +20,8 @@ interface ChangelogerConfig {
   versionBumpType: 'major' | 'minor' | 'patch';
   startVersion: string;
   pullRequestOnly: boolean;
+  order: CommitType[];
+  typeTitle: Record<CommitType, string>;
 }
 
 interface ChangelogerRuntimeConfig extends ChangelogerConfig {

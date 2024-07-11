@@ -1,3 +1,5 @@
+import { CommitType } from './config';
+
 export type ChangelogerProvider = 'git' | 'github' | 'bitbucket' | 'gitlab';
 
 export interface ChangelogerConfig {
@@ -8,6 +10,8 @@ export interface ChangelogerConfig {
   versionBumpType: 'major' | 'minor' | 'patch';
   startVersion: string;
   pullRequestOnly: boolean;
+  order: CommitType[];
+  typeTitle: Record<CommitType, string>;
 }
 
 export interface ChangelogerRuntimeConfig extends ChangelogerConfig {

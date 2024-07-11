@@ -11,6 +11,18 @@ export const configFileNames = [
 
 export const versionHeader = '## ';
 
+export enum CommitType {
+  feat = 'feat',
+  perf = 'perf',
+  fix = 'fix',
+  refactor = 'refactor',
+  docs = 'docs',
+  chore = 'chore',
+  test = 'test',
+  style = 'style',
+  revert = 'revert',
+}
+
 export const defaultConfig: ChangelogerConfig = {
   provider: null,
   header: '# Changelog',
@@ -19,6 +31,29 @@ export const defaultConfig: ChangelogerConfig = {
   versionBumpType: 'patch',
   startVersion: '0.0.0',
   pullRequestOnly: false,
+  order: [
+    CommitType.feat,
+    CommitType.feat,
+    CommitType.perf,
+    CommitType.fix,
+    CommitType.refactor,
+    CommitType.docs,
+    CommitType.chore,
+    CommitType.test,
+    CommitType.style,
+    CommitType.revert,
+  ],
+  typeTitle: {
+    [CommitType.feat]: '🚀 Features',
+    [CommitType.perf]: '⚡️ Performance',
+    [CommitType.fix]: '🩹 Bug Fixes',
+    [CommitType.refactor]: '💅 Refactors',
+    [CommitType.docs]: '📖 Documentation',
+    [CommitType.chore]: '🏡 Chores',
+    [CommitType.test]: '✅ Tests',
+    [CommitType.style]: '✨ Styles',
+    [CommitType.revert]: '🔀 Reverts',
+  },
 };
 
 export function getPullRequestRegex(provider: ChangelogerProvider | null) {

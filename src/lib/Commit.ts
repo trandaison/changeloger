@@ -1,5 +1,6 @@
 import { commitUrl, pullRequestUrl } from './utils';
 import { ChangelogerProvider, GitLog } from '../types';
+import { CommitType, defaultConfig } from '../config';
 
 export class Commit {
   public hash!: string;
@@ -32,6 +33,23 @@ export class Commit {
     }
 
     return null;
+  }
+
+  get messageStats(): {
+    type: CommitType;
+    scope?: string;
+  } | null {
+    return (
+      ((this.body || this.message).match(/^(?<type>[a-z]+)(\(?<scope>.+\))?:/)
+        ?.groups as {
+        type: CommitType;
+        scope?: string;
+      }) ?? null
+    );
+  }
+
+  get type() {
+    return this.messageStats?.type ?? null;
   }
 
   toChangelogEntry(repositoryUrl?: string | null) {
@@ -67,5 +85,17 @@ export class Commit {
     return `- ${
       this.isPullRequest ? this.body : this.message
     }${prLink} (${commitLinks.join(', ')})`;
+  }
+
+  static sort(commits: Commit[]) {
+    const { order } = defaultConfig;
+    return order.reduce((sorted, type) => {
+      const typeCommits = commits.filter((commit) => commit.type === type);
+      if (typeCommits.length) {
+        sorted[type] ??= [];
+        sorted[type].push(...typeCommits);
+      }
+      return sorted;
+    }, {} as Record<CommitType, Commit[]>);
   }
 }
