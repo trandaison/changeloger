@@ -15,6 +15,7 @@ export interface ChangelogerConfig {
   noPackageJson: boolean;
   clean: boolean;
   releaseCommitMessage: string;
+  bump: boolean;
 }
 
 export interface ChangelogerRuntimeConfig extends ChangelogerConfig {
@@ -27,7 +28,6 @@ export interface ChangelogerRuntimeConfig extends ChangelogerConfig {
   fromCommit?: string;
   toCommit?: string;
   date?: string;
-  bump?: boolean;
   noCommit?: boolean;
   noTag?: boolean;
 }

@@ -57,6 +57,7 @@ export const defaultConfig: ChangelogerConfig = {
   noPackageJson: false,
   clean: true,
   releaseCommitMessage: 'chore(release): {version}',
+  bump: true,
 };
 
 export function getPullRequestRegex(provider: ChangelogerProvider | null) {
