@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.0.2 - 2024-7-11
+
+
+### 🩹 Bug Fixes
+
+- fix: Incorrect parsing released version in Changelog.ts ([`607f3c1`](https://github.com/trandaison/changeloger/commit/607f3c1))
+- fix: Set default value for bump option ([`c003610`](https://github.com/trandaison/changeloger/commit/c003610))
+
+### 🏡 Chores
+
+- chore: Add release script to package.json ([`500036e`](https://github.com/trandaison/changeloger/commit/500036e))
+
+
 ## v0.0.1 - 2024-7-11
 
 
