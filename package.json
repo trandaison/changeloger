@@ -21,7 +21,8 @@
   "type": "module",
   "scripts": {
     "dev": "node --experimental-specifier-resolution=node --loader ts-node/esm ./src/bin/changeloger.ts",
-    "build": "rollup --config"
+    "build": "rollup --config",
+    "test": "node dist/cli.mjs"
   },
   "keywords": [],
   "author": "trandaison",
@@ -34,6 +35,8 @@
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.14.9",
     "@types/yargs": "^17.0.32",
+    "date-fns": "^3.6.0",
+    "dayjs": "^1.11.11",
     "defu": "^6.1.4",
     "fs-extra": "^11.2.0",
     "mri": "^1.2.0",

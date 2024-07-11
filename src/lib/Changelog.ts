@@ -6,11 +6,12 @@ import { Version } from './Version';
 import { PackageJson } from './PackageJson';
 import { fileExists, compareUrl } from './utils';
 import { ChangelogerRuntimeConfig } from '../types';
+import { versionHeader } from '../config';
 // import { Release } from '../utils/Release';
 
 export class Changelog {
   static placeholder = '<!-- Generating... -->';
-  static versionHeader = '## ';
+  static versionHeader = versionHeader;
 
   public fullContent?: string;
   public latestCommit?: string | null;
@@ -53,14 +54,13 @@ export class Changelog {
       this.lines[1]?.trim() ||
       `${versionPrefix}${this.runtimeConfig.startVersion}`;
 
-    return new Version(currentVer.replace(versionPrefix, ''));
+    return Version.parse(currentVer, this.runtimeConfig.versionPrefix);
   }
 
   get prevVersion() {
-    const versionPrefix = `${Changelog.versionHeader}${this.runtimeConfig.versionPrefix}`;
     const currentVer = this.lines[1]?.trim();
     return currentVer
-      ? new Version(currentVer.replace(versionPrefix, ''))
+      ? Version.parse(currentVer, this.runtimeConfig.versionPrefix)
       : null;
   }
 
@@ -89,13 +89,13 @@ export class Changelog {
   async updateLatestCommit() {
     this.latestCommit = this.prevVersion
       ? await this.git.versionToCommitHash(
-          this.prevVersion.toString(this.runtimeConfig.versionPrefix)
+          this.prevVersion.toString(this.runtimeConfig.versionPrefix, null)
         )
       : null;
   }
 
   async writeChanges(commits: Commit[]) {
-    if (!commits.length) return this.load();
+    if (!commits.length) return;
 
     const compareChangesUrl = compareUrl(
       this.prevVersion?.toString(this.runtimeConfig.versionPrefix) ?? null,
@@ -111,7 +111,8 @@ export class Changelog {
     let newContent = [
       this.runtimeConfig.header,
       this.nextVersion.toString(
-        `${Changelog.versionHeader}${this.runtimeConfig.versionPrefix}`
+        `${Changelog.versionHeader}${this.runtimeConfig.versionPrefix}`,
+        this.runtimeConfig.date
       ),
       ...(compareChangesLink ? [compareChangesLink] : []),
       commitEntries.join('\n'),
@@ -119,7 +120,6 @@ export class Changelog {
     newContent += this.content ? '\n\n' + this.content : '\n';
 
     await fs.writeFile(this.changelogFilePath, newContent);
-    return this.load();
   }
 
   delete() {

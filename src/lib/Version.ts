@@ -1,3 +1,6 @@
+import { format } from './utils';
+import { versionHeader } from '../config';
+
 export class Version {
   public major!: number;
   public minor!: number;
@@ -55,8 +58,10 @@ export class Version {
     return [this.major, this.minor, this.patch].join('.');
   }
 
-  toString(prefix: string = '') {
-    return `${prefix}${this.version}`;
+  toString(prefix: string = '', date: Date | null | string = new Date()) {
+    return [`${prefix}${this.version}`, date ? ` - ${format(date)}` : ''].join(
+      ''
+    );
   }
 
   nextVersion(versionBumpType: 'major' | 'minor' | 'patch' = 'patch') {
@@ -73,5 +78,13 @@ export class Version {
       default:
         return this;
     }
+  }
+
+  static parse(rawVersion: string, prefix = '') {
+    const versionRegex = new RegExp(
+      `^${versionHeader}${prefix}(?<version>\\d+\\.\\d+\\.\\d+)`
+    );
+    const { version } = rawVersion.match(versionRegex)?.groups!;
+    return new Version(version);
   }
 }

@@ -8,6 +8,7 @@ import { readConfig } from './lib/utils';
 import { ChangelogerRuntimeConfig } from './types';
 
 export default async function main(argv: Argv) {
+  const startTime = performance.now();
   const path = resolve((argv as any)._[0] ?? process.cwd());
   const config = await readConfig({ path });
   const packageJson = new PackageJson(path);
@@ -53,6 +54,9 @@ export default async function main(argv: Argv) {
     } else {
       console.log('No changes found!');
     }
+    console.log(
+      `Done in ${((performance.now() - startTime) / 1000).toFixed(2)}s`
+    );
   } catch (error) {
     if (
       !changelog.fullContent ||

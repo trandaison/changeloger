@@ -9,10 +9,12 @@ export const configFileNames = [
   'changeloger.config.cjs',
 ];
 
+export const versionHeader = '## ';
+
 export const defaultConfig: ChangelogerConfig = {
   provider: null,
   header: '# Changelog',
-  fileName: 'CHANGELOG-{branch}.md',
+  fileName: 'CHANGELOG.md', // CHANGELOG-{branch}.md
   versionPrefix: 'v',
   versionBumpType: 'patch',
   startVersion: '0.0.0',

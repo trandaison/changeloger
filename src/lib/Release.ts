@@ -11,12 +11,11 @@ export class Release {
     public runtimeConfig: ChangelogerRuntimeConfig
   ) {
     const lines = content.split('\n');
-    const releaseVer = lines
-      .shift()!
-      .replace(
-        `${Changelog.versionHeader}${this.runtimeConfig.versionPrefix}`,
-        ''
-      );
+    // Version default format: "## v0.1.1 - 2021-09-01"
+    const versionRegex = new RegExp(
+      `^${Changelog.versionHeader}${runtimeConfig.versionPrefix}(?<releaseVer>\\d+\\.\\d+\\.\\d+)`
+    );
+    const { releaseVer } = lines.shift()!.match(versionRegex)?.groups!;
     this.version = new Version(releaseVer);
     lines.shift(); // remove empty line
     const compareLink = lines.shift(); // remove compare link

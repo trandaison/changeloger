@@ -5,65 +5,6 @@ var fs = require('fs');
 var url = require('url');
 var childProcess = require('child_process');
 
-class Version {
-    major;
-    minor;
-    patch;
-    constructor(majorOrVersion, minor, patch) {
-        if (typeof majorOrVersion === 'string' &&
-            minor === undefined &&
-            patch === undefined) {
-            const parts = majorOrVersion.split('.').map(Number);
-            if (parts.length !== 3 || parts.some(isNaN)) {
-                throw new Error(`Invalid version string format: ${JSON.stringify({
-                    majorOrVersion,
-                    minor,
-                    patch,
-                })}}`);
-            }
-            [this.major, this.minor, this.patch] = parts;
-        }
-        else if (typeof majorOrVersion === 'number' &&
-            typeof minor === 'number' &&
-            typeof patch === 'number') {
-            this.major = majorOrVersion;
-            this.minor = minor;
-            this.patch = patch;
-        }
-        else if (typeof majorOrVersion === 'string' &&
-            typeof minor === 'string' &&
-            typeof patch === 'string') {
-            this.major = Number(majorOrVersion);
-            this.minor = Number(minor);
-            this.patch = Number(patch);
-            if (isNaN(this.major) || isNaN(this.minor) || isNaN(this.patch)) {
-                throw new Error('Invalid version number format');
-            }
-        }
-        else {
-            throw new Error('Invalid constructor arguments');
-        }
-    }
-    get version() {
-        return [this.major, this.minor, this.patch].join('.');
-    }
-    toString(prefix = '') {
-        return `${prefix}${this.version}`;
-    }
-    nextVersion(versionBumpType = 'patch') {
-        switch (versionBumpType) {
-            case 'major':
-                return new Version(this.major + 1, 0, 0);
-            case 'minor':
-                return new Version(this.major, this.minor + 1, 0);
-            case 'patch':
-                return new Version(this.major, this.minor, this.patch + 1);
-            default:
-                return this;
-        }
-    }
-}
-
 function isPlainObject(value) {
   if (value === null || typeof value !== "object") {
     return false;
@@ -128,10 +69,11 @@ const configFileNames = [
     'changeloger.config.mjs',
     'changeloger.config.cjs',
 ];
+const versionHeader = '## ';
 const defaultConfig = {
     provider: null,
     header: '# Changelog',
-    fileName: 'CHANGELOG-{branch}.md',
+    fileName: 'CHANGELOG.md', // CHANGELOG-{branch}.md
     versionPrefix: 'v',
     versionBumpType: 'patch',
     startVersion: '0.0.0',
@@ -184,6 +126,14 @@ async function readConfigFile({ path: path$1 = process.cwd(), configFile, } = {}
         }
     }
     return Promise.resolve(null);
+}
+
+function format(date) {
+    const _date = new Date(date);
+    const year = _date.getFullYear();
+    const month = _date.getMonth() + 1;
+    const day = _date.getDate();
+    return `${year}-${month}-${day}`;
 }
 
 function pullRequestUrl(number, provider, repositoryUrl) {
@@ -252,13 +202,77 @@ function guessProvider(url) {
     return null;
 }
 
+class Version {
+    major;
+    minor;
+    patch;
+    constructor(majorOrVersion, minor, patch) {
+        if (typeof majorOrVersion === 'string' &&
+            minor === undefined &&
+            patch === undefined) {
+            const parts = majorOrVersion.split('.').map(Number);
+            if (parts.length !== 3 || parts.some(isNaN)) {
+                throw new Error(`Invalid version string format: ${JSON.stringify({
+                    majorOrVersion,
+                    minor,
+                    patch,
+                })}}`);
+            }
+            [this.major, this.minor, this.patch] = parts;
+        }
+        else if (typeof majorOrVersion === 'number' &&
+            typeof minor === 'number' &&
+            typeof patch === 'number') {
+            this.major = majorOrVersion;
+            this.minor = minor;
+            this.patch = patch;
+        }
+        else if (typeof majorOrVersion === 'string' &&
+            typeof minor === 'string' &&
+            typeof patch === 'string') {
+            this.major = Number(majorOrVersion);
+            this.minor = Number(minor);
+            this.patch = Number(patch);
+            if (isNaN(this.major) || isNaN(this.minor) || isNaN(this.patch)) {
+                throw new Error('Invalid version number format');
+            }
+        }
+        else {
+            throw new Error('Invalid constructor arguments');
+        }
+    }
+    get version() {
+        return [this.major, this.minor, this.patch].join('.');
+    }
+    toString(prefix = '', date = new Date()) {
+        return [`${prefix}${this.version}`, date ? ` - ${format(date)}` : ''].join('');
+    }
+    nextVersion(versionBumpType = 'patch') {
+        switch (versionBumpType) {
+            case 'major':
+                return new Version(this.major + 1, 0, 0);
+            case 'minor':
+                return new Version(this.major, this.minor + 1, 0);
+            case 'patch':
+                return new Version(this.major, this.minor, this.patch + 1);
+            default:
+                return this;
+        }
+    }
+    static parse(rawVersion, prefix = '') {
+        const versionRegex = new RegExp(`^${versionHeader}${prefix}(?<version>\\d+\\.\\d+\\.\\d+)`);
+        const { version } = rawVersion.match(versionRegex)?.groups;
+        return new Version(version);
+    }
+}
+
 // import { Release } from '../utils/Release';
 class Changelog {
     runtimeConfig;
     packageJson;
     git;
     static placeholder = '<!-- Generating... -->';
-    static versionHeader = '## ';
+    static versionHeader = versionHeader;
     fullContent;
     latestCommit;
     constructor(runtimeConfig, packageJson, git) {
@@ -291,13 +305,12 @@ class Changelog {
         const versionPrefix = `${Changelog.versionHeader}${this.runtimeConfig.versionPrefix}`;
         const currentVer = this.lines[1]?.trim() ||
             `${versionPrefix}${this.runtimeConfig.startVersion}`;
-        return new Version(currentVer.replace(versionPrefix, ''));
+        return Version.parse(currentVer, this.runtimeConfig.versionPrefix);
     }
     get prevVersion() {
-        const versionPrefix = `${Changelog.versionHeader}${this.runtimeConfig.versionPrefix}`;
         const currentVer = this.lines[1]?.trim();
         return currentVer
-            ? new Version(currentVer.replace(versionPrefix, ''))
+            ? Version.parse(currentVer, this.runtimeConfig.versionPrefix)
             : null;
     }
     get nextVersion() {
@@ -323,12 +336,12 @@ class Changelog {
     }
     async updateLatestCommit() {
         this.latestCommit = this.prevVersion
-            ? await this.git.versionToCommitHash(this.prevVersion.toString(this.runtimeConfig.versionPrefix))
+            ? await this.git.versionToCommitHash(this.prevVersion.toString(this.runtimeConfig.versionPrefix, null))
             : null;
     }
     async writeChanges(commits) {
         if (!commits.length)
-            return this.load();
+            return;
         const compareChangesUrl = compareUrl(this.prevVersion?.toString(this.runtimeConfig.versionPrefix) ?? null, this.nextVersion.toString(this.runtimeConfig.versionPrefix), this.runtimeConfig.provider, this.git.repositoryUrl);
         const compareChangesLink = compareChangesUrl
             ? `[compare changes](${compareChangesUrl})`
@@ -336,13 +349,12 @@ class Changelog {
         const commitEntries = await this.commitsToEntries(commits);
         let newContent = [
             this.runtimeConfig.header,
-            this.nextVersion.toString(`${Changelog.versionHeader}${this.runtimeConfig.versionPrefix}`),
+            this.nextVersion.toString(`${Changelog.versionHeader}${this.runtimeConfig.versionPrefix}`, this.runtimeConfig.date),
             ...(compareChangesLink ? [compareChangesLink] : []),
             commitEntries.join('\n'),
         ].join('\n\n');
         newContent += this.content ? '\n\n' + this.content : '\n';
         await fs.promises.writeFile(this.changelogFilePath, newContent);
-        return this.load();
     }
     delete() {
         return fs.promises.unlink(this.changelogFilePath);
@@ -572,6 +584,7 @@ class PackageJson {
 }
 
 async function main(argv) {
+    const startTime = performance.now();
     const path$1 = path.resolve(argv._[0] ?? process.cwd());
     const config = await readConfig({ path: path$1 });
     const packageJson = new PackageJson(path$1);
@@ -614,6 +627,7 @@ async function main(argv) {
         else {
             console.log('No changes found!');
         }
+        console.log(`Done in ${((performance.now() - startTime) / 1000).toFixed(2)}s`);
     }
     catch (error) {
         if (!changelog.fullContent ||

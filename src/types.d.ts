@@ -19,6 +19,7 @@ export interface ChangelogerRuntimeConfig extends ChangelogerConfig {
   patch?: boolean;
   fromCommit?: string;
   toCommit?: string;
+  date?: string;
 }
 
 export interface GitLog {

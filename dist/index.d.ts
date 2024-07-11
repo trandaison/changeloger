@@ -19,25 +19,7 @@ interface ChangelogerRuntimeConfig extends ChangelogerConfig {
   patch?: boolean;
   fromCommit?: string;
   toCommit?: string;
-}
-
-interface CommitAuthor {
-  name: string;
-  email: string;
-}
-
-interface Commit {
-  hash: string;
-  message: string;
-  date: Date;
-  branch: string | null;
-  author?: CommitAuthor;
-}
-
-interface CommitMerge extends Commit {
-  fromCommit: string;
-  toCommit: string;
-  pullRequestNo?: number;
+  date?: string;
 }
 
 interface GitLog {
@@ -53,4 +35,4 @@ interface GitLog {
   commits?: string[];
 }
 
-export type { ChangelogerConfig, ChangelogerProvider, ChangelogerRuntimeConfig, Commit, CommitAuthor, CommitMerge, GitLog };
+export type { ChangelogerConfig, ChangelogerProvider, ChangelogerRuntimeConfig, GitLog };
