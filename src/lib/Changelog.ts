@@ -35,7 +35,7 @@ export class Changelog {
   }
 
   get changelogFilePath() {
-    const fileName = this.runtimeConfig.fileName.replace(
+    const fileName = this.runtimeConfig.output.replace(
       /\{branch\}/g,
       this.runtimeConfig.branch ?? ''
     );

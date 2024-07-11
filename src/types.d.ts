@@ -5,13 +5,16 @@ export type ChangelogerProvider = 'git' | 'github' | 'bitbucket' | 'gitlab';
 export interface ChangelogerConfig {
   provider: ChangelogerProvider | null;
   header: string;
-  fileName: string;
+  output: string;
   versionPrefix: string;
   versionBumpType: 'major' | 'minor' | 'patch';
   startVersion: string;
   pullRequestOnly: boolean;
   order: CommitType[];
   typeTitle: Record<CommitType, string>;
+  noPackageJson: boolean;
+  clean: boolean;
+  releaseCommitMessage: string;
 }
 
 export interface ChangelogerRuntimeConfig extends ChangelogerConfig {
@@ -24,6 +27,9 @@ export interface ChangelogerRuntimeConfig extends ChangelogerConfig {
   fromCommit?: string;
   toCommit?: string;
   date?: string;
+  bump?: boolean;
+  noCommit?: boolean;
+  noTag?: boolean;
 }
 
 export interface GitLog {

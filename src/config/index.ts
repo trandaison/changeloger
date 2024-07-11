@@ -26,7 +26,7 @@ export enum CommitType {
 export const defaultConfig: ChangelogerConfig = {
   provider: null,
   header: '# Changelog',
-  fileName: 'CHANGELOG.md', // CHANGELOG-{branch}.md
+  output: 'CHANGELOG.md', // CHANGELOG-{branch}.md
   versionPrefix: 'v',
   versionBumpType: 'patch',
   startVersion: '0.0.0',
@@ -54,6 +54,9 @@ export const defaultConfig: ChangelogerConfig = {
     [CommitType.style]: '✨ Styles',
     [CommitType.revert]: '🔀 Reverts',
   },
+  noPackageJson: false,
+  clean: true,
+  releaseCommitMessage: 'chore(release): {version}',
 };
 
 export function getPullRequestRegex(provider: ChangelogerProvider | null) {

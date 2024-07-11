@@ -50,13 +50,44 @@ export default async function main(argv: Argv) {
       (commit) => new Commit(commit, git.provider)
     );
     if (changelogCommits.length) {
+      const nextVersion = changelog.nextVersion.toString('', null);
+      const nextTag = changelog.nextVersion.toString(
+        runtimeConfig.versionPrefix,
+        null
+      );
+      console.log(
+        '\n',
+        runtimeConfig.noTag
+          ? '\x1b[33m\x1b[1m🚀 Start generating changelog for\x1b[0m'
+          : '\x1b[33m\x1b[1m🚀 Start release\x1b[0m',
+        `\x1b[33m\x1b[1m${nextTag}\x1b[0m`
+      );
+      if (runtimeConfig.clean && !runtimeConfig.noCommit) {
+        const isGitClean = await git.isClean();
+        if (!isGitClean) {
+          throw new Error(
+            'You have unstaged changes. Please commit or stash them.'
+          );
+        }
+      }
       await changelog.writeChanges(changelogCommits);
+      if (!runtimeConfig.noPackageJson && runtimeConfig.bump) {
+        await packageJson.bumpVersion(nextVersion);
+      }
+      if (!runtimeConfig.noCommit) {
+        await git.add(['-A']);
+        const messageTemplate = runtimeConfig.releaseCommitMessage;
+        const commitMessage = messageTemplate.replace(/\{version\}/g, nextTag);
+        await git.commit(commitMessage);
+      }
+      if (!runtimeConfig.noTag) {
+        await git.tag(nextTag);
+      }
     } else {
-      console.log('No changes found!');
+      console.log('\x1b[33mNo changes found!\x1b[0m');
     }
-    console.log(
-      `Done in ${((performance.now() - startTime) / 1000).toFixed(2)}s`
-    );
+    const execTime = ((performance.now() - startTime) / 1000).toFixed(2);
+    console.log(`\n\x1b[32m✨ Done in ${execTime}s\x1b[0m`);
   } catch (error) {
     if (
       !changelog.fullContent ||

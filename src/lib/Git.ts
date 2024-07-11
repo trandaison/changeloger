@@ -43,6 +43,19 @@ export class Git {
     });
   }
 
+  isClean() {
+    return new Promise<boolean>((resolve, reject) => {
+      exec(
+        `git -C ${this.path} diff --exit-code`,
+        (error: any, stdout: any, stderr: any) => {
+          if (error || stderr) return resolve(false);
+
+          resolve(true);
+        }
+      );
+    });
+  }
+
   log({ range = [], option = '' }: { range?: Range; option?: string } = {}) {
     const [fromCommit, toCommit = 'HEAD'] = range;
     const queryRange = fromCommit ? `${fromCommit}..${toCommit}` : '';
@@ -196,6 +209,45 @@ export class Git {
 
         resolve(stdout.split('\n')[5]?.trim() || null);
       });
+    });
+  }
+
+  add(files: string[]) {
+    return new Promise<string>((resolve, reject) => {
+      exec(
+        `git -C ${this.path} add ${files.join(' ')}`,
+        (error: any, stdout: any, stderr: any) => {
+          if (error || stderr) return reject(error);
+
+          resolve(stdout);
+        }
+      );
+    });
+  }
+
+  commit(message: string) {
+    return new Promise<string>((resolve, reject) => {
+      exec(
+        `git -C ${this.path} commit -m "${message}"`,
+        (error: any, stdout: any, stderr: any) => {
+          if (error || stderr) return reject(error);
+
+          resolve(stdout);
+        }
+      );
+    });
+  }
+
+  tag(tag: string) {
+    return new Promise<string>((resolve, reject) => {
+      exec(
+        `git -C ${this.path} tag ${tag}`,
+        (error: any, stdout: any, stderr: any) => {
+          if (error || stderr) return reject(error);
+
+          resolve(stdout);
+        }
+      );
     });
   }
 
