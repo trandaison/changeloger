@@ -1,7 +1,13 @@
 {
-  "name": "changeloger",
+  "name": "@trandaison/changeloger",
   "version": "0.0.0",
   "description": "A fast and lightweight changelog generator using conventional commits",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trandaison/changeloger"
+  },
+  "homepage": "https://github.com/trandaison/changeloger",
+  "private": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -24,7 +30,12 @@
     "build": "rollup --config",
     "test": "node dist/cli.mjs"
   },
-  "keywords": [],
+  "keywords": [
+    "changeloger",
+    "changelog",
+    "generator",
+    "conventional-commits"
+  ],
   "author": "trandaison",
   "license": "MIT",
   "devDependencies": {
