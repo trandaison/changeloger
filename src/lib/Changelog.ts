@@ -23,23 +23,26 @@ export class Changelog {
   ) {}
 
   async load() {
-    if (await fileExists(this.changelogFilePath)) {
-      this.fullContent = await fs.readFile(this.changelogFilePath, 'utf8');
+    if (await fileExists(this.filePath)) {
+      this.fullContent = await fs.readFile(this.filePath, 'utf8');
     } else {
       this.fullContent = '';
-      await fs.writeFile(this.changelogFilePath, Changelog.placeholder);
+      await fs.writeFile(this.filePath, Changelog.placeholder);
     }
     // const releases = Release.parse(this.content, this.runtimeConfig);
     // releases.forEach((release) => console.log(release.toString()));
     await this.updateLatestCommit();
   }
 
-  get changelogFilePath() {
-    const fileName = this.runtimeConfig.output.replace(
+  get fileName() {
+    return this.runtimeConfig.output.replace(
       /\{branch\}/g,
       this.runtimeConfig.branch ?? ''
     );
-    return resolve(this.runtimeConfig.path, fileName);
+  }
+
+  get filePath() {
+    return resolve(this.runtimeConfig.path, this.fileName);
   }
 
   get content() {
@@ -120,11 +123,11 @@ export class Changelog {
     ].join('\n\n');
     newContent += this.content ? '\n\n' + this.content : '\n';
 
-    await fs.writeFile(this.changelogFilePath, newContent);
+    await fs.writeFile(this.filePath, newContent);
   }
 
   delete() {
-    return fs.unlink(this.changelogFilePath);
+    return fs.unlink(this.filePath);
   }
 
   private get lines() {

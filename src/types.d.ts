@@ -16,6 +16,8 @@ export interface ChangelogerConfig {
   clean: boolean;
   releaseCommitMessage: string;
   bump: boolean;
+  commit: boolean;
+  tag: boolean;
 }
 
 export interface ChangelogerRuntimeConfig extends ChangelogerConfig {

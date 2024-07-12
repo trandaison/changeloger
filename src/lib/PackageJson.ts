@@ -1,6 +1,9 @@
 import { promises as fs } from 'fs';
 import { resolve } from 'path';
+import childProcess from 'child_process';
 import { Version } from './Version';
+
+const { exec } = childProcess;
 
 export class PackageJson {
   public filePath!: string;
@@ -30,18 +33,16 @@ export class PackageJson {
     }
   }
 
-  bumpVersion(version: Version | string) {
-    this.value.version = version.toString();
-    return this.wirte();
-  }
+  bumpVersion(newVersion: Version | string) {
+    return new Promise<string | null>((resolve, reject) => {
+      exec(
+        `npm --prefix ${this.path} --no-git-tag-version version ${newVersion}`,
+        (error: any, stdout: any, stderr: any) => {
+          if (error || stderr) return reject(error);
 
-  async wirte() {
-    if (!this.fileExists) return;
-
-    await fs.writeFile(
-      this.filePath,
-      JSON.stringify(this.value, null, 2),
-      'utf-8'
-    );
+          resolve(stdout);
+        }
+      );
+    });
   }
 }

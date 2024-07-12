@@ -20,6 +20,9 @@ export default async function main(argv: Argv) {
     branch: git.currentBranch,
     repositoryUrl: git.repositoryUrl,
     ...argv,
+    bump: !argv.noBump,
+    commit: !argv.noCommit,
+    tag: !argv.noTag,
     path,
   };
   const changelog = new Changelog(runtimeConfig, packageJson, git);
@@ -56,13 +59,13 @@ export default async function main(argv: Argv) {
         null
       );
       console.log(
-        '\n',
-        runtimeConfig.noTag
-          ? '\x1b[33m\x1b[1m🚀 Start generating changelog for\x1b[0m'
-          : '\x1b[33m\x1b[1m🚀 Start release\x1b[0m',
+        '\n🚀',
+        runtimeConfig.tag
+          ? '\x1b[33m\x1b[1mStart release\x1b[0m'
+          : '\x1b[33m\x1b[1mStart generating changelog for\x1b[0m',
         `\x1b[33m\x1b[1m${nextTag}\x1b[0m`
       );
-      if (runtimeConfig.clean && !runtimeConfig.noCommit) {
+      if (runtimeConfig.clean && runtimeConfig.commit) {
         const isGitClean = await git.isClean();
         if (!isGitClean) {
           throw new Error(
@@ -74,20 +77,24 @@ export default async function main(argv: Argv) {
       if (!runtimeConfig.noPackageJson && runtimeConfig.bump) {
         await packageJson.bumpVersion(nextVersion);
       }
-      if (!runtimeConfig.noCommit) {
+      if (runtimeConfig.commit) {
         await git.add(['-A']);
         const messageTemplate = runtimeConfig.releaseCommitMessage;
         const commitMessage = messageTemplate.replace(/\{version\}/g, nextTag);
         await git.commit(commitMessage);
       }
-      if (!runtimeConfig.noTag) {
+      if (runtimeConfig.tag) {
         await git.tag(nextTag);
       }
     } else {
       console.log('\x1b[33mNo changes found!\x1b[0m');
     }
     const execTime = ((performance.now() - startTime) / 1000).toFixed(2);
-    console.log(`\n\x1b[32m✨ Done in ${execTime}s\x1b[0m`);
+    const message = changelog.prevVersion
+      ? `\x1b[32m\x1b[1m${changelog.fileName}\x1b[0m\x1b[32m has been updated successfully!\x1b[0m`
+      : `\x1b[32m\x1b[1m${changelog.fileName}\x1b[0m\x1b[32m has been created successfully!\x1b[0m`;
+    console.log('✨', message);
+    console.log(`✔ Done in ${execTime}s`);
   } catch (error) {
     if (
       !changelog.fullContent ||
