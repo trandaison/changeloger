@@ -33,7 +33,6 @@ export const defaultConfig: ChangelogerConfig = {
   pullRequestOnly: false,
   order: [
     CommitType.feat,
-    CommitType.feat,
     CommitType.perf,
     CommitType.fix,
     CommitType.refactor,
