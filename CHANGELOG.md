@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.0.0 - 2024-7-12
+
+
+### 📖 Documentation
+
+- docs: create README.md ([`ed32317`](https://github.com/trandaison/changeloger/commit/ed32317))
+
+### 🏡 Chores
+
+- chore: Remove unused packages ([`2a46cb6`](https://github.com/trandaison/changeloger/commit/2a46cb6))
+
+
 ## v0.0.5 - 2024-7-12
 
 
