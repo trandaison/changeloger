@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.5 - 2024-7-12
+
+
+### 🚀 Features
+
+- feat: Push tag automatically ([`24cc598`](https://github.com/trandaison/changeloger/commit/24cc598))
+
+### 🩹 Bug Fixes
+
+- fix: Change lightweight tag to annotated tag ([`fa11ef3`](https://github.com/trandaison/changeloger/commit/fa11ef3))
+
+
 ## v0.0.4 - 2024-7-12
 
 
