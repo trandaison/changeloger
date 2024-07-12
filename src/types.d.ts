@@ -11,7 +11,7 @@ export interface ChangelogerConfig {
   startVersion: string;
   pullRequestOnly: boolean;
   order: CommitType[];
-  typeTitle: Record<CommitType, string>;
+  typeTitle: Record<CommitType | 'other', string>;
   noPackageJson: boolean;
   clean: boolean;
   releaseCommitMessage: string;

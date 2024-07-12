@@ -52,6 +52,7 @@ export const defaultConfig: ChangelogerConfig = {
     [CommitType.test]: '✅ Tests',
     [CommitType.style]: '✨ Styles',
     [CommitType.revert]: '🔀 Reverts',
+    other: '❓ Unclassified',
   },
   noPackageJson: false,
   clean: true,

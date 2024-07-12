@@ -87,15 +87,18 @@ export class Commit {
     }${prLink} (${commitLinks.join(', ')})`;
   }
 
-  static sort(commits: Commit[]) {
+  static classify(commits: Commit[]) {
     const { order } = defaultConfig;
-    return order.reduce((sorted, type) => {
+    const entries = order.reduce((acc, type) => {
       const typeCommits = commits.filter((commit) => commit.type === type);
       if (typeCommits.length) {
-        sorted[type] ??= [];
-        sorted[type].push(...typeCommits);
+        acc[type] ??= [];
+        acc[type].push(...typeCommits);
       }
-      return sorted;
-    }, {} as Record<CommitType, Commit[]>);
+      return acc;
+    }, {} as Record<CommitType | 'other', Commit[]>);
+    const others = commits.filter((commit) => !commit.type);
+    if (others.length) entries.other = others;
+    return entries;
   }
 }

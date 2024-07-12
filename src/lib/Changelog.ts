@@ -109,8 +109,8 @@ export class Changelog {
     const compareChangesLink = compareChangesUrl
       ? `[compare changes](${compareChangesUrl})`
       : '';
-    const sorted = Commit.sort(commits);
-    const commitEntries = await this.commitsToEntries(sorted);
+    const classifiedCommits = Commit.classify(commits);
+    const commitEntries = await this.commitsToEntries(classifiedCommits);
 
     let newContent = [
       this.runtimeConfig.header,
