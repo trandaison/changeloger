@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.3 - 2024-7-12
+
+
+### 🩹 Bug Fixes
+
+- fix: Bump version not working ([`cc1412f`](https://github.com/trandaison/changeloger/commit/cc1412f))
+
+
 ## v0.0.2 - 2024-7-11
 
 
