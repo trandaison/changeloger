@@ -35,6 +35,7 @@ export interface ChangelogerRuntimeConfig extends ChangelogerConfig {
   noCommit?: boolean;
   noTag?: boolean;
   noPush?: boolean;
+  noBump?: boolean;
 }
 
 export interface GitLog {
