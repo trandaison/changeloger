@@ -243,7 +243,7 @@ export class Git {
   tag(tag: string) {
     return new Promise<string>((resolve, reject) => {
       exec(
-        `git -C ${this.path} tag ${tag}`,
+        `git -C ${this.path} tag -a ${tag} -m "${tag}"`,
         (error: any, stdout: any, stderr: any) => {
           if (error || stderr) return reject(error);
 
