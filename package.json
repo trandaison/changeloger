@@ -46,9 +46,6 @@
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.14.9",
-    "@types/yargs": "^17.0.32",
-    "date-fns": "^3.6.0",
-    "dayjs": "^1.11.11",
     "defu": "^6.1.4",
     "fs-extra": "^11.2.0",
     "mri": "^1.2.0",
@@ -56,7 +53,6 @@
     "rollup-plugin-dts": "^6.1.1",
     "ts-node": "^10.9.2",
     "tslib": "^2.6.3",
-    "typescript": "^5.5.2",
-    "yargs": "^17.7.2"
+    "typescript": "^5.5.2"
   }
 }
