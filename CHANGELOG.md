@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.4 - 2024-7-12
+
+
+### 🚀 Features
+
+- feat: Support 'Unclassified' commits ([`48ece1f`](https://github.com/trandaison/changeloger/commit/48ece1f))
+
+### 🩹 Bug Fixes
+
+- fix: Duplicate commit in changelog ([`282de36`](https://github.com/trandaison/changeloger/commit/282de36))
+
+
 ## v0.0.3 - 2024-7-12
 
 
