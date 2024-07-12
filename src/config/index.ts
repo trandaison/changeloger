@@ -60,6 +60,8 @@ export const defaultConfig: ChangelogerConfig = {
   bump: true,
   commit: true,
   tag: true,
+  push: true,
+  remote: 'origin',
 };
 
 export function getPullRequestRegex(provider: ChangelogerProvider | null) {

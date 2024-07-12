@@ -23,36 +23,38 @@ export class Git {
 
   async load() {
     await this.status();
-    this.repositoryUrl =
-      this.packageJson.value.repository?.url ?? (await this.remote());
+    const url =
+      typeof this.packageJson.value.repository === 'string'
+        ? this.packageJson.value.repository
+        : this.packageJson.value.repository?.url;
+    this.repositoryUrl = url ?? (await this.remote());
     this.currentBranch = await this.branch();
     this.provider =
       this.config.provider ?? guessProvider(this.repositoryUrl ?? '');
   }
 
   status() {
+    const command = `git -C ${this.path} status`;
     return new Promise<string>((resolve, reject) => {
-      exec(
-        `git -C ${this.path} status`,
-        (error: any, stdout: any, stderr: any) => {
-          if (error || stderr) return reject(error);
-
-          resolve(stdout);
+      exec(command, (error: any, stdout: any, stderr: any) => {
+        if (error || stderr) {
+          console.error(command, 'returns error:', stderr || error);
+          return reject(error);
         }
-      );
+
+        resolve(stdout);
+      });
     });
   }
 
   isClean() {
-    return new Promise<boolean>((resolve, reject) => {
-      exec(
-        `git -C ${this.path} diff --exit-code`,
-        (error: any, stdout: any, stderr: any) => {
-          if (error || stderr) return resolve(false);
+    const command = `git -C ${this.path} diff --exit-code`;
+    return new Promise<boolean>((resolve) => {
+      exec(command, (error: any, stdout: any, stderr: any) => {
+        if (error || stderr) return resolve(false);
 
-          resolve(true);
-        }
-      );
+        resolve(true);
+      });
     });
   }
 
@@ -62,7 +64,10 @@ export class Git {
     const command = `git -C ${this.path} log ${queryRange} ${option}`.trim();
     return new Promise<string[]>((resolve, reject) => {
       exec(command, (error: any, log: any, stderr: any) => {
-        if (error || stderr) return reject(error);
+        if (error || stderr) {
+          console.error(command, 'returns error:', stderr || error);
+          return reject(error);
+        }
 
         const regex = /(^|\n)(?=commit\s[0-9a-f]{40}\n)/g;
         const logs = log
@@ -83,7 +88,10 @@ export class Git {
     } ${option} | sed -e ':a' -e 'N' -e '$!ba' -e 's/}\\n{/}, {/g' -e 's/\\n/\\\\n/g'`.trim();
     return new Promise<GitLog[]>((resolve, reject) => {
       exec(command, async (error: any, log: any, stderr: any) => {
-        if (error || stderr) return reject(error);
+        if (error || stderr) {
+          console.error(command, 'returns error:', stderr || error);
+          return reject(error);
+        }
 
         const json = JSON.parse(`[${log}]`);
         const logs = await Promise.all(
@@ -153,32 +161,36 @@ export class Git {
   pullRequestUrl(prNo: number | undefined, repositoryUrl?: string | null) {}
 
   remote() {
+    const command = `git -C ${this.path} remote -v`;
     return new Promise<string | null>((resolve, reject) => {
-      exec(
-        `git -C ${this.path} remote -v`,
-        (error: any, stdout: any, stderr: any) => {
-          if (error || stderr) return reject(error);
-
-          const [firstEntry] = stdout.split('\n').filter(Boolean);
-          const remote = firstEntry?.split('\t')[1]?.split(' ')[0];
-          if (!remote) return resolve(null);
-
-          resolve(toRepoUrl(remote));
+      exec(command, (error: any, stdout: any, stderr: any) => {
+        if (error || stderr) {
+          console.error(command, 'returns error:', stderr || error);
+          return reject(error);
         }
-      );
+
+        const remoteEntry = stdout.split('\n').find((entry: string) => {
+          return entry.startsWith(this.config.remote);
+        });
+        const remote = remoteEntry?.split('\t')[1]?.split(' ')[0];
+        if (!remote) return resolve(null);
+
+        resolve(toRepoUrl(remote));
+      });
     });
   }
 
   branch() {
+    const command = `git -C ${this.path} branch --show-current`;
     return new Promise<string>((resolve, reject) => {
-      exec(
-        `git -C ${this.path} branch --show-current`,
-        (error: any, stdout: any, stderr: any) => {
-          if (error || stderr) return reject(error);
-
-          resolve(stdout.trim());
+      exec(command, (error: any, stdout: any, stderr: any) => {
+        if (error || stderr) {
+          console.error(command, 'returns error:', stderr || error);
+          return reject(error);
         }
-      );
+
+        resolve(stdout.trim());
+      });
     });
   }
 
@@ -189,15 +201,16 @@ export class Git {
     sinceCommit: string;
     headCommit?: string;
   }) {
+    const command = `git -C ${this.path} rev-list ${sinceCommit}..${headCommit}`;
     return new Promise<string[]>((resolve, reject) => {
-      exec(
-        `git -C ${this.path} rev-list ${sinceCommit}..${headCommit}`,
-        (error: any, stdout: any, stderr: any) => {
-          if (error || stderr) return reject(error);
-
-          resolve(stdout.split('\n').filter(Boolean));
+      exec(command, (error: any, stdout: any, stderr: any) => {
+        if (error || stderr) {
+          console.error(command, 'returns error:', stderr || error);
+          return reject(error);
         }
-      );
+
+        resolve(stdout.split('\n').filter(Boolean));
+      });
     });
   }
 
@@ -205,7 +218,10 @@ export class Git {
     const command = `git -C ${this.path} rev-list -n 1 ${version}`;
     return new Promise<string | null>((resolve, reject) => {
       exec(command, (error: any, stdout: any, stderr: any) => {
-        if (error || stderr) return reject(error);
+        if (error || stderr) {
+          console.error(command, 'returns error:', stderr || error);
+          return reject(error);
+        }
 
         if (!stdout) return resolve(null);
 
@@ -216,40 +232,58 @@ export class Git {
 
   add(files: string[]) {
     return new Promise<string>((resolve, reject) => {
-      exec(
-        `git -C ${this.path} add ${files.join(' ')}`,
-        (error: any, stdout: any, stderr: any) => {
-          if (error || stderr) return reject(error);
-
-          resolve(stdout);
+      const command = `git -C ${this.path} add ${files.join(' ')}`;
+      exec(command, (error: any, stdout: any, stderr: any) => {
+        if (error || stderr) {
+          console.error(command, 'returns error:', stderr || error);
+          return reject(error);
         }
-      );
+
+        resolve(stdout);
+      });
     });
   }
 
   commit(message: string) {
+    const command = `git -C ${this.path} commit -m "${message}"`;
     return new Promise<string>((resolve, reject) => {
-      exec(
-        `git -C ${this.path} commit -m "${message}"`,
-        (error: any, stdout: any, stderr: any) => {
-          if (error || stderr) return reject(error);
-
-          resolve(stdout);
+      exec(command, (error: any, stdout: any, stderr: any) => {
+        if (error || stderr) {
+          console.error(command, 'returns error:', stderr || error);
+          return reject(error);
         }
-      );
+
+        resolve(stdout);
+      });
     });
   }
 
   tag(tag: string) {
+    const command = `git -C ${this.path} tag -a ${tag} -m "${tag}"`;
     return new Promise<string>((resolve, reject) => {
-      exec(
-        `git -C ${this.path} tag -a ${tag} -m "${tag}"`,
-        (error: any, stdout: any, stderr: any) => {
-          if (error || stderr) return reject(error);
-
-          resolve(stdout);
+      exec(command, (error: any, stdout: any, stderr: any) => {
+        if (error || stderr) {
+          console.error(command, 'returns error:', error);
+          return reject(error);
         }
-      );
+
+        resolve(stdout);
+      });
+    });
+  }
+
+  push(branch = 'HEAD', option = '') {
+    const command =
+      `git -C ${this.path} push ${this.config.remote} ${branch} ${option}`.trim();
+    return new Promise<string>((resolve, reject) => {
+      exec(command, (error: any, stdout: any, stderr: any) => {
+        if (error) {
+          console.error(command, 'returns error:', error);
+          return reject(error);
+        }
+
+        resolve(stdout || stderr);
+      });
     });
   }
 

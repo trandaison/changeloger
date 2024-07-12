@@ -23,6 +23,7 @@ export default async function main(argv: Argv) {
     bump: !argv.noBump,
     commit: !argv.noCommit,
     tag: !argv.noTag,
+    push: !argv.noPush,
     path,
   };
   const changelog = new Changelog(runtimeConfig, packageJson, git);
@@ -85,6 +86,12 @@ export default async function main(argv: Argv) {
       }
       if (runtimeConfig.tag) {
         await git.tag(nextTag);
+
+        if (runtimeConfig.push) {
+          console.log('\x1b[33m\x1b[1m👉 Pushing tag...\x1b[0m');
+          const pushLog = await git.push('HEAD', '--follow-tags');
+          console.log(pushLog);
+        }
       }
     } else {
       console.log('\x1b[33mNo changes found!\x1b[0m');
@@ -93,7 +100,7 @@ export default async function main(argv: Argv) {
     const message = changelog.prevVersion
       ? `\x1b[32m\x1b[1m${changelog.fileName}\x1b[0m\x1b[32m has been updated successfully!\x1b[0m`
       : `\x1b[32m\x1b[1m${changelog.fileName}\x1b[0m\x1b[32m has been created successfully!\x1b[0m`;
-    console.log('✨', message);
+    console.log('✨', message, '\n');
     console.log(`✔ Done in ${execTime}s`);
   } catch (error) {
     if (

@@ -18,6 +18,8 @@ export interface ChangelogerConfig {
   bump: boolean;
   commit: boolean;
   tag: boolean;
+  push: boolean;
+  remote: string;
 }
 
 export interface ChangelogerRuntimeConfig extends ChangelogerConfig {
@@ -32,6 +34,7 @@ export interface ChangelogerRuntimeConfig extends ChangelogerConfig {
   date?: string;
   noCommit?: boolean;
   noTag?: boolean;
+  noPush?: boolean;
 }
 
 export interface GitLog {
