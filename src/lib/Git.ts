@@ -13,7 +13,7 @@ export class Git {
 
   public repositoryUrl?: string | null;
   public currentBranch?: string;
-  public provider?: ChangelogerProvider | null;
+  public provider: ChangelogerProvider | null = null;
 
   constructor(
     public path: string = process.cwd(),
@@ -31,6 +31,10 @@ export class Git {
     this.currentBranch = await this.branch();
     this.provider =
       this.config.provider ?? guessProvider(this.repositoryUrl ?? '');
+  }
+
+  get pullRequestRegex() {
+    return getPullRequestRegex(this.provider);
   }
 
   status() {
@@ -107,9 +111,7 @@ export class Git {
               .split(' ')
               .map((ref: string) => ref.trim())
               .filter(Boolean);
-            const isPullRequest = getPullRequestRegex(
-              this.config.provider
-            ).test(entry.message);
+            const isPullRequest = this.pullRequestRegex.test(entry.message);
             let commits: string[] | null = null;
             if (isPullRequest) {
               const [sinceCommit, headCommit] = parentHashes;
@@ -141,9 +143,7 @@ export class Git {
     const logs = await this.prettyLog({ range, option: '--merges' });
     return await Promise.all(
       logs.map(async (log) => {
-        const isPullRequest = getPullRequestRegex(this.config.provider).test(
-          log.message
-        );
+        const isPullRequest = this.pullRequestRegex.test(log.message);
         const [sinceCommit, headCommit] = log.parentHashes;
         const commits =
           (await this.revList({ sinceCommit, headCommit })).map((c) =>

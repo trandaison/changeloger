@@ -103,7 +103,7 @@ export class Changelog {
     const compareChangesUrl = compareUrl(
       this.prevVersion?.toString(this.runtimeConfig.versionPrefix) ?? null,
       this.nextVersion.toString(this.runtimeConfig.versionPrefix),
-      this.runtimeConfig.provider,
+      this.git.provider,
       this.git.repositoryUrl
     );
     const compareChangesLink = compareChangesUrl
