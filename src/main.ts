@@ -1,3 +1,4 @@
+import { promises as fs } from 'fs';
 import { Argv } from 'mri';
 import { resolve } from 'path';
 import { Changelog } from './lib/Changelog';
@@ -9,12 +10,16 @@ import { ChangelogerRuntimeConfig } from './types';
 
 export default async function main(argv: Argv) {
   const startTime = performance.now();
+  const __debugData: any = {};
   const path = resolve((argv as any)._[0] ?? process.cwd());
   const config = await readConfig({ path });
+  __debugData.config = config;
   const packageJson = new PackageJson(path);
   await packageJson.load();
+  __debugData.packageJson = packageJson.value;
   const git = new Git(path, config, packageJson);
   await git.load();
+  __debugData.git = git;
   const runtimeConfig: ChangelogerRuntimeConfig = {
     ...config,
     branch: git.currentBranch,
@@ -26,14 +31,17 @@ export default async function main(argv: Argv) {
     push: !argv.noPush,
     path,
   };
+  __debugData.runtimeConfig = runtimeConfig;
   const changelog = new Changelog(runtimeConfig, packageJson, git);
   try {
     await changelog.load();
+    __debugData.changelog = changelog;
     const range = [
       runtimeConfig.fromCommit ?? changelog.latestCommit,
       runtimeConfig.toCommit ?? 'HEAD',
     ];
     const mergesLog = await git.mergesLog({ range });
+    __debugData.mergesLog = mergesLog;
     const mergesLogHashes = mergesLog
       .filter((log) => !log.isPullRequest)
       .map((log) => log.hash);
@@ -44,6 +52,7 @@ export default async function main(argv: Argv) {
       range,
       option: `--invert-grep --grep='^chore(release):'`,
     });
+    __debugData.logs = logs;
     const filteredMergesLogs = logs.filter(
       (log) => !mergesLogHashes.includes(log.hash)
     );
@@ -110,5 +119,16 @@ export default async function main(argv: Argv) {
       await changelog.delete();
     }
     throw error;
+  } finally {
+    if (argv.debug === 'inline') {
+      console.log('\n\x1b[33m\x1b[1m=== Debug data: ===\x1b[0m');
+      console.log(__debugData);
+    } else if (argv.debug) {
+      const debugFile = resolve(path, 'changeloger.debug.json');
+      await fs.writeFile(debugFile, JSON.stringify(__debugData, null, 2));
+      console.log(
+        `\n\x1b[33m\x1b[1mDebug data has been saved to ${debugFile}\x1b[0m`
+      );
+    }
   }
 }
