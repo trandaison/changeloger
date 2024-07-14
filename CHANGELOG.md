@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.0.1 - 2024-7-14
+
+[compare changes](https://github.com/trandaison/changeloger/compare/v1.0.0 - 2024-7-14...v1.0.1 - 2024-7-14)
+
+
+### 🚀 Features
+
+- feat: Add debug argument to cli command ([`57725f1`](https://github.com/trandaison/changeloger/commit/57725f1))
+
+### 🩹 Bug Fixes
+
+- fix: Incorrect git provider when provider configuration is not set ([`ee361c7`](https://github.com/trandaison/changeloger/commit/ee361c7))
+
+
 ## v1.0.0 - 2024-7-12
 
 
