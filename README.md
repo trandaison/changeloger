@@ -41,7 +41,7 @@ npx @trandaison/changeloger@latest
 
 **CLI command:**
 ```sh
-npx changelogen@latest [path] [...args]
+changeloger [path] [...args]
 ```
 
 **Arguments:**
@@ -58,6 +58,7 @@ npx changelogen@latest [path] [...args]
 - `--noCommit`: Do not make a git commit.
 - `--noTag`: Do not make a git tag.
 - `--noPush`: Do not push the commit and the new tag to the remote git repository.
+- `--debug`: Output debug data in `changeloger.debug.log` for debugging purposes. Set `--debug=inline` to output debug data in the terminal.
 - And all others options available in [changelog.config.json](#changelog.config) are also available as CLI arguments. The CLI arguments will override the options in the config file.
 
 ## Configuration
