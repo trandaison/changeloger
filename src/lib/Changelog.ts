@@ -100,9 +100,10 @@ export class Changelog {
   async writeChanges(commits: Commit[]) {
     if (!commits.length) return;
 
+    const { versionPrefix, header, date } = this.runtimeConfig;
     const compareChangesUrl = compareUrl(
-      this.prevVersion?.toString(this.runtimeConfig.versionPrefix) ?? null,
-      this.nextVersion.toString(this.runtimeConfig.versionPrefix),
+      this.prevVersion?.toString(versionPrefix, null) ?? null,
+      this.nextVersion.toString(versionPrefix, null),
       this.git.provider,
       this.git.repositoryUrl
     );
@@ -113,10 +114,10 @@ export class Changelog {
     const commitEntries = await this.commitsToEntries(classifiedCommits);
 
     let newContent = [
-      this.runtimeConfig.header,
+      header,
       this.nextVersion.toString(
-        `${Changelog.versionHeader}${this.runtimeConfig.versionPrefix}`,
-        this.runtimeConfig.date
+        `${Changelog.versionHeader}${versionPrefix}`,
+        date
       ),
       ...(compareChangesLink ? [compareChangesLink] : []),
       commitEntries.join('\n'),
