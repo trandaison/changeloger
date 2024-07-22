@@ -1,6 +1,6 @@
 {
   "name": "@trandaison/changeloger",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A fast and lightweight changelog generator using conventional commits",
   "repository": {
     "type": "git",

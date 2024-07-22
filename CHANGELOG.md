@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.0.2 - 2024-7-22
+
+[compare changes](https://github.com/trandaison/changeloger/compare/v1.0.1 - 2024-7-22...v1.0.2 - 2024-7-22)
+
+
+### 🚀 Features
+
+- Add help command ([`4a748d5`](https://github.com/trandaison/changeloger/commit/4a748d5))
+- Add version command ([`455aa92`](https://github.com/trandaison/changeloger/commit/455aa92))
+
+### 🩹 Bug Fixes
+
+- Remove commit/PR prefix in changelog entry ([`835dca5`](https://github.com/trandaison/changeloger/commit/835dca5))
+
+### 📖 Documentation
+
+- Update option --debug in readme.md ([`847a2b8`](https://github.com/trandaison/changeloger/commit/847a2b8))
+
+
 ## v1.0.1 - 2024-7-14
 
 [compare changes](https://github.com/trandaison/changeloger/compare/v1.0.0 - 2024-7-14...v1.0.1 - 2024-7-14)
