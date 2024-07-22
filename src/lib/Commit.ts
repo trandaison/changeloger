@@ -38,12 +38,15 @@ export class Commit {
   get messageStats(): {
     type: CommitType;
     scope?: string;
+    subject: string;
   } | null {
     return (
-      ((this.body || this.message).match(/^(?<type>[a-z]+)(\(?<scope>.+\))?:/)
-        ?.groups as {
+      ((this.isPullRequest ? this.body : this.message).match(
+        /^(?<type>[a-z]+)(\((?<scope>[^)]+)\))?:(\s+)?(?<subject>.+)/
+      )?.groups as {
         type: CommitType;
         scope?: string;
+        subject: string;
       }) ?? null
     );
   }
@@ -64,7 +67,12 @@ export class Commit {
       this.provider,
       repositoryUrl
     )})`;
-    return `- ${this.message} (${commitLink})`;
+    if (!this.messageStats) return `- ${this.message} (${commitLink})`;
+
+    const { scope, subject } = this.messageStats;
+    return scope
+      ? `- **${scope}**: ${subject} (${commitLink})`
+      : `- ${subject} (${commitLink})`;
   }
 
   pullRequestEntry(repositoryUrl?: string | null) {
@@ -82,9 +90,16 @@ export class Commit {
         repositoryUrl
       )})`;
     });
-    return `- ${
-      this.isPullRequest ? this.body : this.message
-    }${prLink} (${commitLinks.join(', ')})`;
+
+    if (this.messageStats) {
+      const { scope, subject } = this.messageStats;
+      return scope
+        ? `- **${scope}**: ${subject}${prLink} (${commitLinks.join(', ')})`
+        : `- ${subject}${prLink} (${commitLinks.join(', ')})`;
+    }
+
+    const subject = this.isPullRequest ? this.body : this.message;
+    return `- ${subject}${prLink} (${commitLinks.join(', ')})`;
   }
 
   static classify(commits: Commit[]) {
