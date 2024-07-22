@@ -4,6 +4,7 @@ import mri from 'mri';
 const commands = {
   _default: () => import('../main'),
   version: () => import('../version'),
+  help: () => import('../help'),
 };
 
 async function start() {
@@ -15,12 +16,16 @@ async function start() {
   const args = mri(argv, {
     alias: {
       v: ['version'],
+      h: ['help'],
     },
   });
-  if (args.version) {
+  if (args.help) {
+    command = 'help';
+  } else if (args.version) {
     command = 'version';
   }
-  await commands[command]().then((module) => module.default(args));
+  const subCommand = commands[command] || commands.help;
+  await subCommand().then((module) => module.default(args));
 }
 
 start();
