@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.0.3 - 2024-7-22
+
+[compare changes](https://github.com/trandaison/changeloger/compare/v1.0.2...v1.0.3)
+
+
+### 🩹 Bug Fixes
+
+- Incorrect compare changes url ([`b6d9829`](https://github.com/trandaison/changeloger/commit/b6d9829))
+- path not working ([`b78b492`](https://github.com/trandaison/changeloger/commit/b78b492))
+
+
 ## v1.0.2 - 2024-7-22
 
 [compare changes](https://github.com/trandaison/changeloger/compare/v1.0.1 - 2024-7-22...v1.0.2 - 2024-7-22)
